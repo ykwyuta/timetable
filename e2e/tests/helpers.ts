@@ -8,12 +8,29 @@ import { expect, type Locator, type Page } from '@playwright/test'
  * 開始直後に小さく動かしてドラッグを確実に発火させている。
  */
 export async function dragTo(page: Page, source: Locator, target: Locator): Promise<void> {
+  // スクロールは座標を変えるので、必要なスクロールを済ませてから両方の位置を読む。
+  // 先にドラッグ元の位置を取ってからドロップ先をスクロールすると、押下位置が
+  // ずれて要素の外を掴んでしまい、ドラッグが始まらない。
+  await target.scrollIntoViewIfNeeded()
   await source.scrollIntoViewIfNeeded()
   const from = await source.boundingBox()
-  if (!from) throw new Error('ドラッグ元の位置を取得できません')
-  await target.scrollIntoViewIfNeeded()
   const to = await target.boundingBox()
+  if (!from) throw new Error('ドラッグ元の位置を取得できません')
   if (!to) throw new Error('ドロップ先の位置を取得できません')
+
+  const viewport = page.viewportSize()
+  if (viewport) {
+    for (const [name, box] of [
+      ['ドラッグ元', from],
+      ['ドロップ先', to],
+    ] as const) {
+      if (box.y < 0 || box.y + box.height > viewport.height) {
+        throw new Error(
+          `${name}が画面外にあります（ビューポートを広げるか、対象を近づけてください）`,
+        )
+      }
+    }
+  }
 
   const start = { x: from.x + from.width / 2, y: from.y + from.height / 2 }
   const end = { x: to.x + to.width / 2, y: to.y + to.height / 2 }

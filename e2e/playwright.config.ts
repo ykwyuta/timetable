@@ -37,7 +37,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], launchOptions: { executablePath } },
+      use: {
+        ...devices['Desktop Chrome'],
+        // 時間割グリッドと未配置トレイを同時に画面へ収める。ドラッグ中に
+        // スクロールが挟まると座標がずれて掴み損ねるため、縦を広く取る
+        viewport: { width: 1440, height: 1400 },
+        launchOptions: { executablePath },
+      },
     },
   ],
   webServer: [

@@ -28,6 +28,12 @@ def init_db() -> None:
     Base.metadata.create_all(engine)
 
 
+def reset_db() -> None:
+    """スキーマを作り直す。E2E のように毎回まっさらな状態で始めたいときに使う。"""
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+
 def get_db() -> Iterator[Session]:
     db = SessionLocal()
     try:

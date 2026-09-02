@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api import router
-from .db import init_db
+from .db import init_db, reset_db
 
 app = FastAPI(
     title="時間割自動編成API",
@@ -35,7 +35,12 @@ app.include_router(router)
 
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db()
+    # 仮定 A-31: E2E は毎回まっさらな状態から始めたいので、環境変数で明示された
+    # ときだけスキーマを作り直す。通常起動では既存データを保持する。
+    if os.environ.get("TIMETABLE_E2E_RESET") == "1":
+        reset_db()
+    else:
+        init_db()
 
 
 @app.get("/health")
